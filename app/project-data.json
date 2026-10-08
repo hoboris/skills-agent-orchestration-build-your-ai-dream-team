@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "name": "Customer Identity Refresh",
+      "owner": "Priya Shah",
+      "status": "On Track",
+      "recentActivity": "Completed single sign-on usability testing on October 6.",
+      "priority": "High",
+      "summary": "Modernizes account sign-in and recovery flows for the customer portal."
+    },
+    {
+      "name": "Mobile Checkout Reliability",
+      "owner": "Marcus Lee",
+      "status": "At Risk",
+      "recentActivity": "Payment-provider sandbox timeout remains under investigation.",
+      "priority": "Critical",
+      "summary": "Reduces failed purchases and improves recovery for mobile shoppers."
+    },
+    {
+      "name": "Warehouse Scan Migration",
+      "owner": "Elena Rodriguez",
+      "status": "Blocked",
+      "recentActivity": "Awaiting vendor firmware certification for the new handheld scanners.",
+      "priority": "High",
+      "summary": "Moves fulfillment teams to the supported barcode-scanning platform."
+    },
+    {
+      "name": "Quarterly Sustainability Report",
+      "owner": "Noah Williams",
+      "status": "Complete",
+      "recentActivity": "Published the reviewed report and shared the executive briefing.",
+      "priority": "Medium",
+      "summary": "Consolidates operational emissions and supplier progress for the quarterly update."
+    },
+    {
+      "name": "Knowledge Base Search",
+      "owner": "Amina Okafor",
+      "status": "On Track",
+      "recentActivity": "Released search relevance improvements to the support team.",
+      "priority": "Low",
+      "summary": "Makes approved support guidance easier for contributors and customers to find."
+    }
+  ]
+}

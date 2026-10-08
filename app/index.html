@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="dashboard" aria-labelledby="page-title">
+      <h1 id="page-title">Project Pulse</h1>
+      <p id="dashboard-state" class="dashboard-state" role="status" aria-live="polite">
+        Loading project updates…
+      </p>
+    </main>
+
+    <script>
+      (() => {
+        "use strict";
+
+        const dashboard = document.querySelector(".dashboard");
+        const state = document.querySelector("#dashboard-state");
+        const requiredFields = ["name", "owner", "status", "recentActivity", "priority", "summary"];
+        const supportedStatuses = new Set(["On Track", "At Risk", "Blocked", "Complete"]);
+        const supportedPriorities = new Set(["Critical", "High", "Medium", "Low"]);
+
+        function showState(message, isError = false) {
+          state.textContent = message;
+          state.hidden = false;
+          state.setAttribute("role", isError ? "alert" : "status");
+        }
+
+        function clearCards() {
+          dashboard.querySelectorAll(".project-card").forEach((card) => card.remove());
+        }
+
+        function isDisplayableProject(project) {
+          return project !== null &&
+            typeof project === "object" &&
+            requiredFields.every((field) =>
+              typeof project[field] === "string" && project[field].trim().length > 0
+            ) &&
+            supportedStatuses.has(project.status) &&
+            supportedPriorities.has(project.priority);
+        }
+
+        function modifierClass(prefix, value) {
+          return `${prefix}-${value.toLowerCase().replace(/\s+/g, "-")}`;
+        }
+
+        function createDetail(label, value) {
+          const detail = document.createElement("div");
+          detail.className = "project-card__detail";
+
+          const detailLabel = document.createElement("span");
+          detailLabel.className = "project-card__label";
+          detailLabel.textContent = label;
+
+          const detailValue = document.createElement("span");
+          detailValue.textContent = value;
+
+          detail.append(detailLabel, detailValue);
+          return detail;
+        }
+
+        function createBadge(label, value, baseClass, modifierPrefix) {
+          const badge = document.createElement("span");
+          badge.className = `${baseClass} ${modifierClass(modifierPrefix, value)}`;
+          badge.textContent = `${label}: ${value}`;
+          return badge;
+        }
+
+        function createProjectCard(project) {
+          const card = document.createElement("article");
+          card.className = "project-card";
+
+          const header = document.createElement("header");
+          header.className = "project-card__header";
+
+          const title = document.createElement("h2");
+          title.className = "project-card__title";
+          title.textContent = project.name;
+
+          header.append(
+            title,
+            createBadge("Status", project.status, "status-badge", "status")
+          );
+
+          const summary = document.createElement("p");
+          summary.className = "project-card__summary";
+          summary.textContent = project.summary;
+
+          const details = document.createElement("div");
+          details.className = "project-card__details";
+          details.append(
+            createDetail("Owner", project.owner),
+            createDetail("Recent activity", project.recentActivity)
+          );
+
+          const priorityDetail = document.createElement("div");
+          priorityDetail.className = "project-card__detail";
+          const priorityLabel = document.createElement("span");
+          priorityLabel.className = "project-card__label";
+          priorityLabel.textContent = "Priority";
+          priorityDetail.append(
+            priorityLabel,
+            createBadge("Priority", project.priority, "priority-badge", "priority")
+          );
+          details.append(priorityDetail);
+
+          card.append(header, summary, details);
+          return card;
+        }
+
+        async function loadProjects() {
+          if (window.location.protocol === "file:") {
+            showState(
+              "Project data cannot be loaded from a file URL. Run “Run Project Pulse Dashboard” in VS Code, then open http://localhost:5500/index.html.",
+              true
+            );
+            return;
+          }
+
+          try {
+            const response = await fetch("project-data.json");
+            if (!response.ok) {
+              throw new Error(`The server returned ${response.status} ${response.statusText}.`);
+            }
+
+            let data;
+            try {
+              data = await response.json();
+            } catch (error) {
+              showState("Project data is malformed JSON and cannot be displayed.", true);
+              return;
+            }
+
+            if (!data || !Array.isArray(data.projects)) {
+              showState("Project data is malformed: a projects array is required.", true);
+              return;
+            }
+
+            if (data.projects.length === 0) {
+              showState("No projects are available yet. Add a project to project-data.json.");
+              return;
+            }
+
+            const invalidCount = data.projects.filter((project) => !isDisplayableProject(project)).length;
+            const validProjects = data.projects.filter(isDisplayableProject);
+            clearCards();
+
+            validProjects.forEach((project) => dashboard.append(createProjectCard(project)));
+
+            if (invalidCount > 0) {
+              showState(
+                `${invalidCount} project record${invalidCount === 1 ? "" : "s"} could not be displayed because required fields or supported status/priority values are missing.`,
+                true
+              );
+            } else {
+              state.hidden = true;
+            }
+          } catch (error) {
+            clearCards();
+            showState(
+              `Unable to load project data. Check that the dashboard is served from the app folder and try again. (${error.message})`,
+              true
+            );
+          }
+        }
+
+        loadProjects();
+      })();
+    </script>
+  </body>
+</html>
